@@ -61,7 +61,59 @@ for model in models:
     name = models[model]
     scores = cross_val_score(name, X, y, cv=10, n_jobs=-1, scoring=cross_validation_scoring)
 
-    print("=="*30)
-    print(model)
-    print(f"Scores: {scores}")
-    print(f"Mean Score: {np.mean(scores)}")
+    # Uncomment to see cross validation between 3 models
+    # print("=="*30)
+    # print(model)
+    # print(f"Scores: {scores}")
+    # print(f"Mean Score: {np.mean(scores)}")
+
+# Now, we train and test the SVM classifier
+# First we fit the model with the training data, and then test and compare using the test data
+svm_model = SVC()
+svm_model.fit(X_train, y_train)
+prediction = svm_model.predict(X_test)
+
+# We now compare the accuracy on the training and test data
+print(f"Accuracy on train data by SVM Classifier: {accuracy_score(y_train, svm_model.predict(X_train)) *  100}")
+print(f"Accuracy on test data by SVM Classifier: {accuracy_score(y_test, prediction) * 100}")
+
+cf_matrix = confusion_matrix(y_test, prediction)
+plt.figure(figsize=(12,8))
+sns.heatmap(cf_matrix, annot=True)
+plt.title("Confusion Matrix for SVM Classifier on Test Data")
+plt.show()
+
+# Now, we train and test the Gaussian NB classifier
+# First we fit the model with the training data, and then test and compare using the test data
+gnb_model = GaussianNB()
+gnb_model.fit(X_train, y_train)
+prediction = gnb_model.predict(X_test)
+
+# We now compare the accuracy on the training and test data
+print(f"Accuracy on train data by GNB Classifier: {accuracy_score(y_train, gnb_model.predict(X_train)) *  100}")
+print(f"Accuracy on test data by GNB Classifier: {accuracy_score(y_test, prediction) * 100}")
+
+cf_matrix = confusion_matrix(y_test, prediction)
+plt.figure(figsize=(12,8))
+sns.heatmap(cf_matrix, annot=True)
+plt.title("Confusion Matrix for GNB Classifier on Test Data")
+plt.show()
+
+# Now, we train and test the Random Forest classifier
+# First we fit the model with the training data, and then test and compare using the test data
+rf_model = RandomForestClassifier(random_state=18)
+rf_model.fit(X_train, y_train)
+prediction = rf_model.predict(X_test)
+
+# We now compare the accuracy on the training and test data
+print(f"Accuracy on train data by RF Classifier: {accuracy_score(y_train, rf_model.predict(X_train)) *  100}")
+print(f"Accuracy on test data by RF Classifier: {accuracy_score(y_test, prediction) * 100}")
+
+cf_matrix = confusion_matrix(y_test, prediction)
+plt.figure(figsize=(12,8))
+sns.heatmap(cf_matrix, annot=True)
+plt.title("Confusion Matrix for RF Classifier on Test Data")
+plt.show()
+
+# From the above confusion matrices, we see that the models are performing very well on the unseen data.
+# Now we will use the full training data to train the models and then test on the actual test data
