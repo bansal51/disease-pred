@@ -74,14 +74,14 @@ svm_model.fit(X_train, y_train)
 prediction = svm_model.predict(X_test)
 
 # We now compare the accuracy on the training and test data
-print(f"Accuracy on train data by SVM Classifier: {accuracy_score(y_train, svm_model.predict(X_train)) *  100}")
-print(f"Accuracy on test data by SVM Classifier: {accuracy_score(y_test, prediction) * 100}")
+# print(f"Accuracy on train data by SVM Classifier: {accuracy_score(y_train, svm_model.predict(X_train)) *  100}")
+# print(f"Accuracy on test data by SVM Classifier: {accuracy_score(y_test, prediction) * 100}")
 
 cf_matrix = confusion_matrix(y_test, prediction)
 plt.figure(figsize=(12,8))
 sns.heatmap(cf_matrix, annot=True)
 plt.title("Confusion Matrix for SVM Classifier on Test Data")
-plt.show()
+# plt.show()
 
 # Now, we train and test the Gaussian NB classifier
 # First we fit the model with the training data, and then test and compare using the test data
@@ -90,14 +90,14 @@ gnb_model.fit(X_train, y_train)
 prediction = gnb_model.predict(X_test)
 
 # We now compare the accuracy on the training and test data
-print(f"Accuracy on train data by GNB Classifier: {accuracy_score(y_train, gnb_model.predict(X_train)) *  100}")
-print(f"Accuracy on test data by GNB Classifier: {accuracy_score(y_test, prediction) * 100}")
+# print(f"Accuracy on train data by GNB Classifier: {accuracy_score(y_train, gnb_model.predict(X_train)) *  100}")
+# print(f"Accuracy on test data by GNB Classifier: {accuracy_score(y_test, prediction) * 100}")
 
 cf_matrix = confusion_matrix(y_test, prediction)
 plt.figure(figsize=(12,8))
 sns.heatmap(cf_matrix, annot=True)
 plt.title("Confusion Matrix for GNB Classifier on Test Data")
-plt.show()
+# plt.show()
 
 # Now, we train and test the Random Forest classifier
 # First we fit the model with the training data, and then test and compare using the test data
@@ -106,14 +106,44 @@ rf_model.fit(X_train, y_train)
 prediction = rf_model.predict(X_test)
 
 # We now compare the accuracy on the training and test data
-print(f"Accuracy on train data by RF Classifier: {accuracy_score(y_train, rf_model.predict(X_train)) *  100}")
-print(f"Accuracy on test data by RF Classifier: {accuracy_score(y_test, prediction) * 100}")
+# print(f"Accuracy on train data by RF Classifier: {accuracy_score(y_train, rf_model.predict(X_train)) *  100}")
+# print(f"Accuracy on test data by RF Classifier: {accuracy_score(y_test, prediction) * 100}")
 
 cf_matrix = confusion_matrix(y_test, prediction)
 plt.figure(figsize=(12,8))
 sns.heatmap(cf_matrix, annot=True)
 plt.title("Confusion Matrix for RF Classifier on Test Data")
-plt.show()
+# plt.show()
 
 # From the above confusion matrices, we see that the models are performing very well on the unseen data.
 # Now we will use the full training data to train the models and then test on the actual test data
+updated_svm_model = SVC()
+updated_gnb_model = GaussianNB()
+updated_rf_model = RandomForestClassifier(random_state=18)
+
+# We are now fitting the updated models with the full training data
+updated_svm_model.fit(X, y)
+updated_gnb_model.fit(X, y)
+updated_rf_model.fit(X, y)
+
+# Read in the test data
+test_data_path = "dataset/Testing.csv"
+test_data = pd.read_csv(test_data_path).dropna(axis=1)
+test_X = test_data.iloc[:, :-1]
+test_y = encoder.transform(test_data.iloc[:, -1])
+
+# Making prediction by taking mode of predictions made by all the classifiers
+svm_prediction = updated_svm_model.predict(test_X)
+gnb_prediction = updated_gnb_model.predict(test_X)
+rf_prediction = updated_rf_model.predict(test_X)
+
+final_predictions = [mode([i, j, k])[0] for i,j,k in zip(svm_prediction, gnb_prediction, rf_prediction)]
+print(final_predictions)
+print(f"Accuracy on test dataset by the combined model: {accuracy_score(test_y, final_predictions) * 100}")
+cf_matrix = confusion_matrix(test_y, final_predictions)
+
+# The confusion matrix classifies the data points accurately
+plt.figure(figsize=(12,8))
+sns.heatmap(cf_matrix, annot=True)
+plt.title("Confusion Matrix for Combined Model on Test Data")
+# plt.show()
