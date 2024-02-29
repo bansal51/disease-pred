@@ -9,6 +9,7 @@ from sklearn.svm import SVC
 from sklearn.naive_bayes import GaussianNB
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix
+import statistics
 
 
 training_data_path = "dataset/Training.csv"
@@ -138,7 +139,6 @@ gnb_prediction = updated_gnb_model.predict(test_X)
 rf_prediction = updated_rf_model.predict(test_X)
 
 final_predictions = [mode([i, j, k])[0] for i,j,k in zip(svm_prediction, gnb_prediction, rf_prediction)]
-print(final_predictions)
 print(f"Accuracy on test dataset by the combined model: {accuracy_score(test_y, final_predictions) * 100}")
 cf_matrix = confusion_matrix(test_y, final_predictions)
 
@@ -147,3 +147,51 @@ plt.figure(figsize=(12,8))
 sns.heatmap(cf_matrix, annot=True)
 plt.title("Confusion Matrix for Combined Model on Test Data")
 # plt.show()
+
+# Now I can create a function that can take Symptoms as an input and generate predictions for a disease on every model
+symptoms = X.columns.values
+
+# Creating an index dictionary of symptoms that encodes the symptoms in a numerical form
+symptom_dict = {}
+for index, value in enumerate(symptoms):
+    symptom = " ".join([i.capitalize() for i in value.split("_")])
+    symptom_dict[symptom] = index
+
+data_dict = {
+    "symptom_dict": symptom_dict,
+    "prediction_classes": encoder.classes_
+}
+
+# Function to predict disease based on symptoms
+# Input: string containing symptoms separated by commas
+# Output: Generated predictions by all models
+def predictDisease(symptoms):
+    symptoms = symptoms.split(",")
+
+    # Creating input data for the models
+    # We create an array with a length of the dictionary and then set the index of the input to 1 based on the symptoms
+    input = [0] * len(data_dict["symptom_dict"])
+    for symptom in symptoms:
+        index = data_dict["symptom_dict"][symptom]
+        input[index] = 1
+    
+    # Reshape the input data
+    input = np.array(input).reshape(1, -1)
+
+    # Generate predictions from each model
+    rf_prediction = data_dict["prediction_classes"][updated_rf_model.predict(input)[0]]
+    gnb_prediction = data_dict["prediction_classes"][updated_gnb_model.predict(input)[0]]
+    svm_prediction = data_dict["prediction_classes"][updated_svm_model.predict(input)[0]]
+
+    # Making final prediction by taking mode of all predictions
+    final_predictions = statistics.mode([rf_prediction, gnb_prediction, svm_prediction])
+    prediction = {
+        "rf_model_prediction": rf_prediction,
+        "gnb_model_prediction": gnb_prediction,
+        "svm_model_prediction": svm_prediction,
+        "final_prediction": final_predictions
+    }
+    return prediction
+
+# Testing the function
+print(predictDisease("Itching,Chills,Fatigue,Mood Swings"))
